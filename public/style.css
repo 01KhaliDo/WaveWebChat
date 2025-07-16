@@ -164,6 +164,7 @@ body {
 @media (max-width: 600px) {
   body {
     flex-direction: column;
+    height: 650px;
   }
 
   #user-list {
@@ -174,8 +175,8 @@ body {
   }
 
   #chat {
-    padding: 5px; 
-    max-height: 500px;
+    padding: 1px; 
+    height: calc(100vh - 200px); 
   }
 
   #messages li {

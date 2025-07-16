@@ -62,5 +62,6 @@ io.on('connection', (socket) => {
 });
 
 http.listen(port, () => {
-  console.log(`Servern körs på http://localhost:${port}`);
+  console.log(`Servern körs på http://192.168.1.237:${port}`);
 });
+
