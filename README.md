@@ -14,7 +14,7 @@ Try the application directly here:
 2. **Choose username:** Enter your desired username in the box that appears.
 3. **View users:** In the list on the left, you can see others who are currently connected.
 4. **Start chat:** Click on a user in the list you want to talk to.
-5. **Send message:** Write your message and Send it.
+5. **Send message:** Write your message and send it.
 
 ## Features
 
@@ -28,4 +28,5 @@ Try the application directly here:
 - **Backend:** Node.js, Express
 - **Real-time:** Socket.io
 - **Frontend:** HTML, CSS, Vanilla JavaScript
+
 
