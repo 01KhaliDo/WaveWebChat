@@ -1,226 +1,353 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>Privat Webbchatt</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>WaveWebChat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
-  <div id="user-list">
-    <h3>User</h3>
-    <ul id="users"></ul>
+  <div id="app-container">
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <h3><i class="fa-solid fa-comments"></i> WaveWebChat</h3>
+      </div>
+      <div id="user-list">
+        <ul id="users"></ul>
+      </div>
+    </aside>
+
+    <main id="chat">
+      <header id="chat-header">
+        <div class="chat-user-info">
+          <i class="fa-solid fa-arrow-left mobile-back" id="back-btn"></i>
+          <div id="header-avatar" class="avatar-large">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div class="header-details">
+            <h3 id="chat-with-name">Select a user</h3>
+            <span id="chat-status">to start chatting</span>
+          </div>
+        </div>
+      </header>
+
+      <ul id="messages"></ul>
+
+      <div class="input-area">
+        <form id="form" action="">
+          <input id="input" autocomplete="off" placeholder="Type a message..." disabled />
+          <button id="send" disabled><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+      </div>
+    </main>
   </div>
 
-  <div id="chat">
-    <h3 id="chat-with">Select a user to chat with</h3>
-    <div id="typing-indicator" style="font-style: italic; color: gray; height: 20px;"></div>
-    <ul id="messages"></ul>
-    <form id="form" action="">
-      <input id="input" autocomplete="off" placeholder="Type a message..." disabled />
-      <button id="send" disabled>Skicka</button>
-    </form>
+  <!-- Login Modal -->
+  <div id="login-modal">
+    <div class="modal-content">
+      <h2>Welcome to WaveWebChat</h2>
+      <p class="subtitle">This is a hobby project demonstrating real-time communication.</p>
+
+      <div class="instructions">
+        <p><strong>How it works:</strong></p>
+        <ul>
+          <li>Enter your name to join.</li>
+          <li>Select a user from the sidebar to start a private chat.</li>
+          <li>Messages are instant and secure.</li>
+        </ul>
+      </div>
+
+      <form id="login-form">
+        <input type="text" id="username-input" placeholder="Enter your name" autocomplete="off" required>
+        <button type="submit">Join Chat</button>
+      </form>
+    </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-<script>
-  let myUsername = '';
-  let selectedUser = null;
-  let typingTimeout;
+  <script>
+    let myUsername = '';
+    let selectedUser = null;
+    let typingTimeout;
 
-  // Chatthistorik per användare
-  const chatHistory = {}; // { username: [{ from, message, time }, ...] }
-  const unreadCounts = {}; // { username: number }
+    const loginModal = document.getElementById('login-modal');
+    const loginForm = document.getElementById('login-form');
+    const usernameInput = document.getElementById('username-input');
 
-  while (!myUsername) {
-    myUsername = prompt('Enter your username::');
-  }
+    // Chatthistorik per användare
+    const chatHistory = {}; // { username: [{ from, message, time }, ...] }
+    const unreadCounts = {}; // { username: number }
 
-  const socket = io({
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    timeout: 20000,
-  });
-
-  function setUsername() {
-    socket.emit('set username', myUsername);
-  }
-
-  socket.on('connect', () => {
-    console.log('Ansluten till servern');
-    setUsername();
-  });
-
-  socket.on('disconnect', (reason) => {
-    console.log('Frånkopplad:', reason);
-    if (reason === 'io server disconnect') {
-      socket.connect();
-    }
-  });
-
-  socket.on('connect_error', (error) => {
-    console.log('Anslutningsfel:', error);
-  });
-
-  const usersList = document.getElementById('users');
-  const messages = document.getElementById('messages');
-  const form = document.getElementById('form');
-  const input = document.getElementById('input');
-  const sendBtn = document.getElementById('send');
-  const chatWith = document.getElementById('chat-with');
-  const typingIndicator = document.getElementById('typing-indicator');
-
-  socket.on('user list', (usernames) => {
-  usersList.innerHTML = '';
-  usernames.forEach(username => {
-    if (username === myUsername) return;
-
-    const li = document.createElement('li');
-    li.classList.add('user');
-    if (username === selectedUser) li.classList.add('selected');
-
-    const nameSpan = document.createElement('span');
-    nameSpan.className = 'username';
-    nameSpan.textContent = username;
-    li.appendChild(nameSpan);
-
-    const unread = unreadCounts[username] || 0;
-    if (unread > 0) {
-      const badge = document.createElement('span');
-      badge.className = 'badge';
-      badge.textContent = unread;
-      li.appendChild(badge);
-    }
-
-    li.onclick = () => {
-      selectedUser = username;
-      chatWith.textContent = `Chatta med: ${selectedUser}`;
-      input.disabled = false;
-      sendBtn.disabled = false;
-      typingIndicator.textContent = '';
-      unreadCounts[selectedUser] = 0;
-
-      renderChat(selectedUser);
-      updateUserList();
-    };
-
-    usersList.appendChild(li);
-  });
-});
-
-
-  function updateUserList() {
-  Array.from(usersList.children).forEach(li => {
-    const nameSpan = li.querySelector('.username');
-    const username = nameSpan?.textContent;
-    li.classList.toggle('selected', username === selectedUser);
-
-    const oldBadge = li.querySelector('.badge');
-    if (oldBadge) oldBadge.remove();
-
-    const unread = unreadCounts[username] || 0;
-    if (unread > 0) {
-      const badge = document.createElement('span');
-      badge.className = 'badge';
-      badge.textContent = unread;
-      li.appendChild(badge);
-    }
-  });
-}
-
-
-  // Lägg till meddelande i chatthistorik
-  function addMessageToHistory(username, from, message) {
-    if (!chatHistory[username]) chatHistory[username] = [];
-    chatHistory[username].push({ from, message, time: new Date() });
-  }
-
-  // Rendera chatthistorik för vald användare
-  function renderChat(username) {
-    messages.innerHTML = '';
-    if (!chatHistory[username]) return;
-    chatHistory[username].forEach(({ from, message, time }) => {
-      addMessage(formatMessage(from, message, time));
+    // Socket initialization
+    const socket = io({
+      autoConnect: false,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
     });
-  }
 
-  // Formatera meddelande med tid längst till höger
-  function formatMessage(from, message, time) {
-    const timeStr = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    return { text: `${from}: ${message}`, time: timeStr };
-  }
+    // Handle Login
+    usernameInput.focus();
 
-  // Lägg till meddelande i DOM med tid högerställd
-  function addMessage({ text, time }) {
-    const li = document.createElement('li');
-    li.innerHTML = `<span>${text}</span><span style="float:right; color: gray; font-size: 0.8em;">[${time}]</span>`;
-    messages.appendChild(li);
-    messages.scrollTop = messages.scrollHeight;
-  }
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = usernameInput.value.trim();
+      if (name) {
+        myUsername = name;
+        loginModal.style.display = 'none';
+        socket.connect();
+      }
+    });
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    if (input.value && selectedUser) {
-      addMessageToHistory(selectedUser, myUsername, input.value);
-      renderChat(selectedUser);
+    function setUsername() {
+      if (myUsername) {
+        socket.emit('set username', myUsername);
+      }
+    }
 
-      socket.emit('private message', {
-        to: selectedUser,
-        message: input.value
+    socket.on('connect', () => {
+      console.log('Ansluten till servern');
+      setUsername();
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log('Frånkopplad:', reason);
+      if (reason === 'io server disconnect') {
+        socket.connect();
+      }
+    });
+
+    socket.on('connect_error', (error) => {
+      console.log('Anslutningsfel:', error);
+    });
+
+    const usersList = document.getElementById('users');
+    const messages = document.getElementById('messages');
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const sendBtn = document.getElementById('send');
+    const chatWithName = document.getElementById('chat-with-name');
+    const chatStatus = document.getElementById('chat-status');
+    const headerAvatar = document.getElementById('header-avatar');
+    const backBtn = document.getElementById('back-btn');
+
+    // Mobile navigation
+    if (backBtn) {
+      backBtn.onclick = () => {
+        document.getElementById('chat').classList.remove('active');
+      };
+    }
+
+    socket.on('user list', (usernames) => {
+      usersList.innerHTML = '';
+
+      // Check if selected user is still online
+      if (selectedUser && !usernames.includes(selectedUser)) {
+        chatStatus.textContent = 'Offline';
+        chatStatus.style.color = 'var(--text-secondary)';
+        // Optional: Disable input?
+        // input.disabled = true;
+        // sendBtn.disabled = true;
+      } else if (selectedUser && usernames.includes(selectedUser)) {
+        // If they reconnected or are still there
+        if (chatStatus.textContent === 'Offline') {
+          chatStatus.textContent = 'Online';
+          chatStatus.style.color = 'var(--success-color)';
+          input.disabled = false;
+          sendBtn.disabled = false;
+        }
+      }
+
+      usernames.forEach(username => {
+        if (username === myUsername) return;
+
+        const li = document.createElement('li');
+        li.classList.add('user');
+        if (username === selectedUser) li.classList.add('selected');
+
+        // Avatar placeholder
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.innerHTML = `<i class="fa-solid fa-user"></i>`;
+        li.appendChild(avatar);
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'user-info';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'username';
+        nameSpan.textContent = username;
+        infoDiv.appendChild(nameSpan);
+
+        li.appendChild(infoDiv);
+
+        const unread = unreadCounts[username] || 0;
+        if (unread > 0) {
+          const badge = document.createElement('span');
+          badge.className = 'badge';
+          badge.textContent = unread;
+          li.appendChild(badge);
+        }
+
+        li.onclick = () => {
+          selectedUser = username;
+
+          // Update header
+          chatWithName.textContent = selectedUser;
+          chatStatus.textContent = 'Online';
+          chatStatus.style.color = 'var(--success-color)';
+          headerAvatar.innerHTML = `<i class="fa-solid fa-circle-user"></i>`;
+
+          input.disabled = false;
+          sendBtn.disabled = false;
+          unreadCounts[selectedUser] = 0;
+
+          renderChat(selectedUser);
+          updateUserList();
+
+          // Mobile view handling
+          document.getElementById('chat').classList.add('active');
+        };
+
+        usersList.appendChild(li);
       });
-
-      const audio = new Audio('/2.mp3');
-      audio.play();
-
-      input.value = '';
-      socket.emit('stop typing', { to: selectedUser });
-    }
-  });
-
-  socket.on('private message', ({ from, message }) => {
-    addMessageToHistory(from, from, message);
-
-    if (from === selectedUser) {
-      renderChat(selectedUser);
-    } else {
-      // Öka olästa om meddelandet är från annan användare än vald
-      unreadCounts[from] = (unreadCounts[from] || 0) + 1;
-      updateUserList();
-    }
-
-    // Highlighta användaren som skickade meddelandet
-    const senderLi = Array.from(usersList.children).find(li => {
-      const username = li.textContent.replace(/\s\(\d+\)$/, '');
-      return username === from;
     });
-    if (senderLi) {
-      senderLi.classList.add('highlight');
-      setTimeout(() => senderLi.classList.remove('highlight'), 1000);
+
+
+    function updateUserList() {
+      Array.from(usersList.children).forEach(li => {
+        const nameSpan = li.querySelector('.username');
+        const username = nameSpan?.textContent;
+        li.classList.toggle('selected', username === selectedUser);
+
+        const oldBadge = li.querySelector('.badge');
+        if (oldBadge) oldBadge.remove();
+
+        const unread = unreadCounts[username] || 0;
+        if (unread > 0) {
+          const badge = document.createElement('span');
+          badge.className = 'badge';
+          badge.textContent = unread;
+          li.appendChild(badge);
+        }
+      });
     }
 
-    const audio = new Audio('/notification.mp3');
-    audio.play();
-  });
 
-  // Skrivindikator
-  input.addEventListener('input', () => {
-    if (!selectedUser) return;
-    socket.emit('typing', { to: selectedUser });
+    // Lägg till meddelande i chatthistorik
+    function addMessageToHistory(username, from, message) {
+      if (!chatHistory[username]) chatHistory[username] = [];
+      chatHistory[username].push({ from, message, time: new Date() });
+    }
 
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => {
-      socket.emit('stop typing', { to: selectedUser });
-    }, 1000);
-  });
+    // Rendera chatthistorik för vald användare
+    function renderChat(username) {
+      messages.innerHTML = '';
+      if (!chatHistory[username]) return;
+      chatHistory[username].forEach(({ from, message, time }) => {
+        addMessage({ ...formatMessage(from, message, time), isMine: from === myUsername });
+      });
+    }
 
-  socket.on('typing', ({ from }) => {
-    typingIndicator.textContent = `${from} typing...`;
-  });
+    // Formatera meddelande med tid längst till höger
+    function formatMessage(from, message, time) {
+      const timeStr = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return { text: `${from}: ${message}`, time: timeStr };
+    }
 
-  socket.on('stop typing', ({ from }) => {
-    typingIndicator.textContent = '';
-  });
-</script>
+    // Lägg till meddelande i DOM med tid högerställd
+    function addMessage({ text, time, isMine }) {
+      const li = document.createElement('li');
+      li.className = isMine ? 'message mine' : 'message theirs';
+
+      li.innerHTML = `
+  <div class="message-content">
+    <span class="text">${text}</span>
+    <span class="time">${time}</span>
+  </div>
+  `;
+      messages.appendChild(li);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (input.value && selectedUser) {
+        addMessageToHistory(selectedUser, myUsername, input.value);
+        renderChat(selectedUser);
+
+        socket.emit('private message', {
+          to: selectedUser,
+          message: input.value
+        });
+
+        const audio = new Audio('/2.mp3');
+        audio.play();
+
+        input.value = '';
+        socket.emit('stop typing', { to: selectedUser });
+      }
+    });
+
+    socket.on('private message', ({ from, message }) => {
+      addMessageToHistory(from, from, message);
+
+      if (from === selectedUser) {
+        renderChat(selectedUser);
+      } else {
+        // Öka olästa om meddelandet är från annan användare än vald
+        unreadCounts[from] = (unreadCounts[from] || 0) + 1;
+        updateUserList();
+      }
+
+      // Highlighta användaren som skickade meddelandet
+      const senderLi = Array.from(usersList.children).find(li => {
+        const username = li.textContent.replace(/\s\(\d+\)$/, '');
+        return username === from;
+      });
+      if (senderLi) {
+        senderLi.classList.add('highlight');
+        setTimeout(() => senderLi.classList.remove('highlight'), 1000);
+      }
+
+      const audio = new Audio('/notification.mp3');
+      audio.play();
+    });
+
+    // Skrivindikator
+    input.addEventListener('input', () => {
+      if (!selectedUser) return;
+      socket.emit('typing', { to: selectedUser });
+
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        socket.emit('stop typing', { to: selectedUser });
+      }, 1000);
+    });
+
+    socket.on('typing', ({ from }) => {
+      if (from === selectedUser) {
+        chatStatus.textContent = 'typing...';
+        chatStatus.style.color = 'var(--primary-color)';
+      }
+    });
+
+    socket.on('stop typing', ({ from }) => {
+      if (from === selectedUser) {
+        chatStatus.textContent = 'Online';
+        chatStatus.style.color = 'var(--success-color)';
+      }
+    });
+  </script>
 
 </body>
+
 </html>
