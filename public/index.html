@@ -168,8 +168,17 @@
         }
       }
 
-      usernames.forEach(username => {
-        if (username === myUsername) return;
+      const otherUsers = usernames.filter(u => u !== myUsername);
+
+      if (otherUsers.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'empty-message';
+        li.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-bottom: 10px; display: block; font-size: 1.5rem;"></i>It may take a few seconds for a user to appear, or it might take a little while.';
+        li.style.cssText = 'color: var(--text-secondary); padding: 30px 10px; text-align: center; margin-right: 40px; font-size: 0.9rem; list-style: none; opacity: 0.8;';
+        usersList.appendChild(li);
+      }
+
+      otherUsers.forEach(username => {
 
         const li = document.createElement('li');
         li.classList.add('user');
