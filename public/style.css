@@ -31,7 +31,6 @@
   --success-color: #22c55e;
   /* Green 500 */
 
-  /* Spacing & Sizes */
   --header-height: 70px;
   --sidebar-width: 300px;
   --radius-lg: 16px;
@@ -204,6 +203,10 @@ body {
   border-radius: 12px;
   font-weight: 600;
   box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.user.highlight {
+  animation: flash 1s ease-out;
 }
 
 /* =========================================
