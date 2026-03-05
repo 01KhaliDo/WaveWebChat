@@ -8,6 +8,11 @@ Prova applikationen direkt här:
 
 > **Obs:** Servern stängs av automatiskt efter inaktivitet. Därför kan det ta **några sekunder** att starta upp igen första gången du besöker länken.
 
+## Skärmdumpar
+
+![Väntar på användare](public/screenshots/chat-empty.png)
+![Aktiv chatt](public/screenshots/chat-active.png)
+
 ## Funktioner
 
 - **Privata Chattar:** Välj en användare från listan för att starta en privat chatt.
@@ -42,6 +47,11 @@ Try the application directly here:
 👉 **[https://wavewebchat.vercel.app/](https://wavewebchat.vercel.app/)**
 
 > **Note:** The server shuts down automatically after inactivity. Therefore, it may take **a few seconds** to start up again the first time you visit the link.
+
+## Screenshots
+
+![Waiting for users](public/screenshots/chat-empty.png)
+![Active chat](public/screenshots/chat-active.png)
 
 ## Features
 
