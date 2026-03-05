@@ -87,6 +87,9 @@
     const chatHistory = {}; // { username: [{ from, message, time }, ...] }
     const unreadCounts = {}; // { username: number }
 
+    // Wake up the server immediately when the page loads
+    fetch("https://wavewebchat.onrender.com/").catch(() => { });
+
     // Socket initialization
     const socket = io("https://wavewebchat.onrender.com/", {
       autoConnect: false,
@@ -105,6 +108,15 @@
       if (name) {
         myUsername = name;
         loginModal.style.display = 'none';
+
+        // Show the waiting message immediately, before server responds
+        usersList.innerHTML = '';
+        const li = document.createElement('li');
+        li.className = 'empty-message';
+        li.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-bottom: 10px; display: block; font-size: 1.5rem;"></i>It may take a few seconds for a user to appear, or it might take a little while.';
+        li.style.cssText = 'color: var(--text-secondary); padding: 30px 10px; text-align: center; margin-right: 40px; font-size: 0.9rem; list-style: none; opacity: 0.8;';
+        usersList.appendChild(li);
+
         socket.connect();
       }
     });
