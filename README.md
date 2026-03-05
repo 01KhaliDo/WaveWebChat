@@ -18,7 +18,7 @@ Prova applikationen direkt här:
 ## Teknologier
 
 - **Backend:** Node.js, Express, Socket.io
-- **Frontend:** HTML5, CSS3, JavaScript
+- **Frontend:** HTML, CSS, JavaScript
 
 ## Hur du använder chatten
 
@@ -53,7 +53,7 @@ Try the application directly here:
 ## Technologies
 
 - **Backend:** Node.js, Express, Socket.io
-- **Frontend:** HTML5, CSS3, JavaScript
+- **Frontend:** HTML, CSS, JavaScript
 
 ## How to use the chat
 
@@ -64,4 +64,5 @@ Try the application directly here:
    - Write your message in the box at the bottom and press "Send".
    - See when the other person is typing.
    - Hear a sound when you receive a reply.
+
 
