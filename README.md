@@ -1,7 +1,6 @@
 # WaveWebChat
 
-En enkel och smidig webbapplikation för privata realtidskonversationer. Byggd med Node.js och Socket.io för sömlös kommunikation.
-
+En enkel och smidig webbapplikation för privata realtidskonversationer. Byggd med Node.js och Socket.io. 
 ## Live Demo
 
 Prova applikationen direkt här:  
@@ -65,3 +64,4 @@ Try the application directly here:
    - Write your message in the box at the bottom and press "Send".
    - See when the other person is typing.
    - Hear a sound when you receive a reply.
+
